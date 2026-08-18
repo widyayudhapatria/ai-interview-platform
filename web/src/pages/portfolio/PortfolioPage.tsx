@@ -93,8 +93,19 @@ export default function PortfolioPage() {
   // means Sidekiq already restarted the job and the API is refusing a second
   // one, so re-read the status instead of asserting anything about it.
   const handleRetry = async () => {
-    await sessionsApi.regeneratePortfolio(Number(sessionId));
-    setGenerating(true);
+    setRetrying(true);
+    setRetryError(null);
+    try {
+      await sessionsApi.regeneratePortfolio(Number(sessionId));
+      setGenerating(true);
+    } catch {
+      await fetchPortfolio().catch(() => {});
+      setRetryError(
+        "Could not start a new run just now. The status above has been refreshed — try again in a moment.",
+      );
+    } finally {
+      setRetrying(false);
+    }
   };
 
   const handleRunFitGap = () => {
