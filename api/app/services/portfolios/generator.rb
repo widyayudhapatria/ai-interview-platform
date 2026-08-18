@@ -167,17 +167,19 @@ module Portfolios
       # portfolio.portfolio_skills — loading the association means the update!
       # that records the failure autosaves the rolled-back children back in.
       portfolio.transaction(requires_new: true) do
-        portfolio.portfolio_skills.destroy_all
+        PortfolioSkill.where(portfolio_id: portfolio.id).destroy_all
 
         (data['configured_skills'] || []).each do |skill_data|
-          portfolio.portfolio_skills.create!(
+          PortfolioSkill.create!(
             skill_attributes(skill_data, coverage[skill_data['skill_label']], discovered: false)
+              .merge(portfolio_id: portfolio.id)
           )
         end
 
         (data['discovered_skills'] || []).each do |skill_data|
-          portfolio.portfolio_skills.create!(
+          PortfolioSkill.create!(
             skill_attributes(skill_data, coverage[skill_data['skill_label']], discovered: true)
+              .merge(portfolio_id: portfolio.id)
           )
         end
       end
